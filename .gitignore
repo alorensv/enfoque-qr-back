@@ -1,0 +1,58 @@
+# ===============================
+# Node / NestJS
+# ===============================
+node_modules/
+dist/
+coverage/
+
+# Build cache
+.cache/
+.nest/
+tmp/
+.temp/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs/
+*.log
+
+# ===============================
+# Environment variables
+# ===============================
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# ===============================
+# OS / Editor
+# ===============================
+.DS_Store
+Thumbs.db
+
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+
+.idea/
+
+# ===============================
+# Testing
+# ===============================
+.jest/
+.nyc_output/
+
+# ===============================
+# Docker
+# ===============================
+docker-compose.override.yml
+
+# ===============================
+# Misc
+# ===============================
+*.tgz
+*.swp

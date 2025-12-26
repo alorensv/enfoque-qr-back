@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-@Entity('usuarios')
-export class Usuario {
+@Entity('users')
+export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -11,8 +11,8 @@ export class Usuario {
   @Column()
   password: string;
 
-  @Column({ default: 1 })
-  estado: number;
+  @Column({ default: 1, name: 'status' })
+  status: number;
 
   @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

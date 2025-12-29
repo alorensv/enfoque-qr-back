@@ -22,11 +22,15 @@ export class EquipmentDocument {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
+
   @Column()
   name: string;
 
   @Column({ nullable: true })
   type: string | null;
+
+  @Column({ name: 'file_path' })
+  filePath: string;
 
   @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

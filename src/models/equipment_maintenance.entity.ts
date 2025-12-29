@@ -31,8 +31,12 @@ export class EquipmentMaintenance {
   @Column({ nullable: true })
   technician: string | null;
 
+
   @Column({ nullable: true })
   status: string | null;
+
+  @Column({ name: 'file_path' })
+  filePath: string;
 
   @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

@@ -1,10 +1,16 @@
-import { Entity, PrimaryColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { Institution } from './institution.entity';
 
+
+@Index('idx_equipments_name', ['name'])
+@Index('idx_equipments_serial_number', ['serialNumber'])
+@Index('idx_equipments_status', ['status'])
+@Index('idx_equipments_institution_status', ['institutionId', 'status'])
+@Index('idx_equipments_created_at', ['createdAt'])
 @Entity('equipments')
 export class Equipment {
-  @PrimaryColumn({ type: 'char', length: 36 })
-  id: string;
+  @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
+  id: number;
 
   @Column()
   name: string;

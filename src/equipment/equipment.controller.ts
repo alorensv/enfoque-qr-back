@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Put, Delete, Param, Body, NotFoundException } from '@nestjs/common';
 import { EquipmentService } from './equipment.service';
+import { Equipment } from '../models/equipment.entity';
 
 @Controller('equipments')
 export class EquipmentController {
@@ -20,7 +21,7 @@ export class EquipmentController {
   }
 
   @Post()
-  create(@Body() createEquipmentDto: any) {
+  create(@Body() createEquipmentDto: Partial<Equipment>): Promise<Equipment> {
     return this.equipmentService.create(createEquipmentDto);
   }
 

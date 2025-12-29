@@ -8,8 +8,8 @@ export class EquipmentDocument {
   id: number;
 
 
-  @Column({ name: 'equipment_id', type: 'char', length: 36 })
-  equipmentId: string;
+  @Column({ name: 'equipment_id', type: 'bigint', unsigned: true })
+  equipmentId: number;
 
   @ManyToOne(() => Equipment)
   @JoinColumn({ name: 'equipment_id' })

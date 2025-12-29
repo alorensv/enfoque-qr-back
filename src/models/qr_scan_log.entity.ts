@@ -6,8 +6,8 @@ export class QrScanLog {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'qr_code_id', type: 'char', length: 36 })
-  qrCodeId: string;
+  @Column({ name: 'qr_code_id', type: 'bigint', unsigned: true })
+  qrCodeId: number;
 
   @ManyToOne(() => EquipmentQrCode)
   @JoinColumn({ name: 'qr_code_id' })

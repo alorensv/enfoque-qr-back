@@ -8,8 +8,11 @@ import { AuthModule } from './auth/auth.module';
 import { User } from './models/user.entity';
 import { Equipment } from './models/equipment.entity';
 import { EquipmentController } from './equipment/equipment.controller';
-import { EquipmentService } from './equipment/equipment.service';
+import { EquipmentModule } from './equipment/equipment.module';
 import { Institution } from './models/institution.entity';
+import { CodigoQr } from './models/codigo_qr.entity';
+import { QrModule } from './qr/qr.module';
+import { EquipmentQrCode } from './models/equipment_qr_code.entity';
 
 @Module({
   imports: [
@@ -20,14 +23,16 @@ import { Institution } from './models/institution.entity';
       username: process.env.DB_USER || 'enfoque',
       password: process.env.DB_PASS || 'enfoquepass',
       database: process.env.DB_NAME || 'enfoqueqr',
-      entities: [User, Equipment, Institution],
+      entities: [User, Equipment, Institution, CodigoQr, EquipmentQrCode],
       synchronize: false,
       logging: true,
     }),
-    TypeOrmModule.forFeature([Equipment, Institution]),
+    // TypeOrmModule.forFeature([Equipment, Institution]),
     AuthModule,
+    QrModule,
+    EquipmentModule,
   ],
   controllers: [AppController, EquipmentController],
-  providers: [AppService, EquipmentService],
+  providers: [AppService],
 })
 export class AppModule {}

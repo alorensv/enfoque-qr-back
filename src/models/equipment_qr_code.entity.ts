@@ -1,16 +1,16 @@
-import { Entity, PrimaryColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Equipment } from './equipment.entity';
 
 @Entity('equipment_qr_codes')
 export class EquipmentQrCode {
-  @PrimaryColumn({ type: 'char', length: 36 })
-  id: string;
+  @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })
+  id: number;
 
   @Column({ unique: true })
   token: string;
 
-  @Column({ name: 'equipment_id', type: 'char', length: 36, nullable: true })
-  equipmentId: string | null;
+  @Column({ name: 'equipment_id', type: 'bigint', nullable: true })
+  equipmentId: number | null;
 
   @ManyToOne(() => Equipment, { nullable: true })
   @JoinColumn({ name: 'equipment_id' })

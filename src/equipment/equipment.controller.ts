@@ -6,6 +6,20 @@ import { Equipment } from '../models/equipment.entity';
 export class EquipmentController {
   constructor(private readonly equipmentService: EquipmentService) {}
 
+  /**
+   * Endpoint para obtener equipo por token de QR
+   */
+  @Get('by-qr/:token')
+  async getEquipoByQrToken(@Param('token') token: string) {
+    // Buscar el registro de equipment_qr_code activo por token
+    const qrCodeRepo = this.equipmentService['equipmentQrCodeRepository'];
+    const eqQr = await qrCodeRepo.findOne({ where: { token, deletedAt: null, enabled: 1, revokedAt: null } });
+    if (!eqQr || !eqQr.equipmentId) return null;
+    // Buscar el equipo asociado
+    const equipo = await this.equipmentService.findOne(eqQr.equipmentId);
+    return equipo;
+  }
+
   @Get()
   findAll() {
     return this.equipmentService.findAll();

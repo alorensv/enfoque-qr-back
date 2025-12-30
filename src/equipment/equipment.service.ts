@@ -48,9 +48,8 @@ export class EquipmentService {
     /**
      * 3. Construir URL pública
      */
-    const baseUrl =
-      process.env.QR_PUBLIC_BASE_URL ?? 'https://app.dominio.cl/qr';
-
+    // Usar la URL pública del frontend para los QR
+    const baseUrl = process.env.QR_FRONT_PUBLIC_BASE_URL ?? 'http://localhost:3000/qr';
     const urlPublica = `${baseUrl}/${token}`;
 
     const qr = await this.qrService.create({

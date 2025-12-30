@@ -46,4 +46,14 @@ export class EquipmentController {
       return { success: false, error: error.message || error };
     }
   }
+
+  /**
+   * Endpoint para obtener los QR asociados a un equipo
+   */
+  @Get(':id/qrs')
+  async getQrs(@Param('id') id: string) {
+    const numId = parseInt(id, 10);
+    if (isNaN(numId)) throw new NotFoundException('ID inválido');
+    return this.equipmentService.findQrsByEquipmentId(numId);
+  }
 }

@@ -90,4 +90,30 @@ export class EquipmentService {
     await this.equipmentRepository.save(equipo);
     return true;
   }
+
+  /**
+   * Obtiene los QR activos asociados a un equipo
+   */
+  async findQrsByEquipmentId(equipmentId: number) {
+    // Buscar los tokens activos asociados al equipo
+    const qrLinks = await this.equipmentQrCodeRepository.find({
+      where: { equipmentId, deletedAt: null, enabled: 1, revokedAt: null },
+    });
+    if (!qrLinks.length) return [];
+    // Buscar los QR completos usando los tokens
+    const tokens = qrLinks.map(qr => qr.token);
+    // Buscar los QR en la tabla codigo_qr
+    const { In } = require('typeorm');
+    const qrs = await this.qrService['qrRepository'].find({
+      where: { token: In(tokens), deletedAt: null },
+    });
+    // Devolver solo los datos relevantes
+    return qrs.map(qr => ({
+      id: qr.id,
+      token: qr.token,
+      urlPublica: qr.urlPublica,
+      imagenPath: qr.imagenPath,
+      estado: qr.estado,
+    }));
+  }
 }

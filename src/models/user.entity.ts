@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm';
+import { UserProfile } from './user_profile.entity';
 
 @Entity('users')
 export class User {
@@ -25,4 +26,7 @@ export class User {
 
   @Column({ name: 'remember_token', nullable: true })
   rememberToken: string | null;
+
+  @OneToOne(() => UserProfile, userProfile => userProfile.user)
+  userProfile: UserProfile;
 }

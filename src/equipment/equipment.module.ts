@@ -3,11 +3,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { EquipmentService } from './equipment.service';
 import { Equipment } from '../models/equipment.entity';
 import { EquipmentQrCode } from '../models/equipment_qr_code.entity';
+import { EquipmentDocument } from '../models/equipment_document.entity';
 import { QrModule } from '../qr/qr.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Equipment, EquipmentQrCode]),
+    TypeOrmModule.forFeature([Equipment, EquipmentQrCode, EquipmentDocument]),
     forwardRef(() => QrModule),
   ],
   providers: [EquipmentService],

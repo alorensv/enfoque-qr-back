@@ -13,6 +13,8 @@ import { Institution } from './models/institution.entity';
 import { CodigoQr } from './models/codigo_qr.entity';
 import { QrModule } from './qr/qr.module';
 import { EquipmentQrCode } from './models/equipment_qr_code.entity';
+import { EquipmentDocument } from './models/equipment_document.entity';
+import { UserProfile } from './models/user_profile.entity';
 
 @Module({
   imports: [
@@ -23,11 +25,12 @@ import { EquipmentQrCode } from './models/equipment_qr_code.entity';
       username: process.env.DB_USER || 'enfoque',
       password: process.env.DB_PASS || 'enfoquepass',
       database: process.env.DB_NAME || 'enfoqueqr',
-      entities: [User, Equipment, Institution, CodigoQr, EquipmentQrCode],
+      entities: [User, UserProfile, Equipment, Institution, CodigoQr, EquipmentQrCode, EquipmentDocument],
       synchronize: false,
       logging: true,
     }),
     // TypeOrmModule.forFeature([Equipment, Institution]),
+    TypeOrmModule.forFeature([EquipmentDocument]),
     AuthModule,
     QrModule,
     EquipmentModule,

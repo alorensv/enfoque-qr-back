@@ -34,9 +34,10 @@ export class EquipmentController {
     // Si filePath es relativo, ajústalo a la carpeta public
     let fileAbsPath = doc.filePath;
     if (!path.isAbsolute(fileAbsPath)) {
-      fileAbsPath = path.join(process.cwd(), 'public', fileAbsPath.replace(/^\/+/, ''));
+      fileAbsPath = path.join(process.cwd(), 'public', fileAbsPath.replace(/^\/+/,'') );
     }
-    if (!fs.existsSync(fileAbsPath)) throw new NotFoundException('Archivo no encontrado en servidor');
+    console.log('Descargando archivo:', fileAbsPath);
+    if (!fs.existsSync(fileAbsPath)) throw new NotFoundException('Archivo no encontrado en servidor: ' + fileAbsPath);
     res.download(fileAbsPath, doc.name);
   }
 
@@ -48,21 +49,15 @@ export class EquipmentController {
   @Post(':id/documents')
   @UseInterceptors(FileInterceptor('file', {
     storage: multer.diskStorage({
-      destination: async (req, file, cb) => {
-        try {
-          const institutionId = req.body.institutionId;
-          if (!institutionId) return cb(new Error('institutionId requerido'), '');
-          const path = require('path');
-          const fs = require('fs');
-          const dest = path.join(process.cwd(), 'public', 'documentos', String(institutionId));
-          if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
-          cb(null, dest);
-        } catch (e) {
-          cb(e, '');
-        }
+      destination: (req, file, cb) => {
+        // Siempre subir a una carpeta temporal
+        const path = require('path');
+        const fs = require('fs');
+        const dest = path.join(process.cwd(), 'public', 'documentos', 'tmp');
+        if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+        cb(null, dest);
       },
       filename: (req, file, cb) => {
-        // Guardar con timestamp y nombre original
         const unique = Date.now() + '-' + file.originalname.replace(/\s+/g, '_');
         cb(null, unique);
       },
@@ -77,6 +72,13 @@ export class EquipmentController {
     if (isNaN(numId)) throw new NotFoundException('ID inválido');
     if (!file) throw new BadRequestException('Archivo requerido');
     if (!body.institutionId) throw new BadRequestException('institutionId requerido');
+    // Mover el archivo a la carpeta definitiva de la institución
+    const path = require('path');
+    const fs = require('fs');
+    const destDir = path.join(process.cwd(), 'public', 'documentos', String(body.institutionId));
+    if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+    const destPath = path.join(destDir, file.filename);
+    fs.renameSync(file.path, destPath);
     // Guardar ruta relativa para filePath
     const relPath = `/documentos/${body.institutionId}/${file.filename}`;
     const doc = this.equipmentDocumentRepository.create({

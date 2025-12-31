@@ -15,6 +15,8 @@ import { QrModule } from './qr/qr.module';
 import { EquipmentQrCode } from './models/equipment_qr_code.entity';
 import { EquipmentDocument } from './models/equipment_document.entity';
 import { UserProfile } from './models/user_profile.entity';
+import { UserInstitution } from './models/user_institution.entity';
+
 
 @Module({
   imports: [
@@ -25,7 +27,7 @@ import { UserProfile } from './models/user_profile.entity';
       username: process.env.DB_USER || 'enfoque',
       password: process.env.DB_PASS || 'enfoquepass',
       database: process.env.DB_NAME || 'enfoqueqr',
-      entities: [User, UserProfile, Equipment, Institution, CodigoQr, EquipmentQrCode, EquipmentDocument],
+      entities: [User, UserProfile, Equipment, Institution, CodigoQr, EquipmentQrCode, EquipmentDocument, UserInstitution],
       synchronize: false,
       logging: true,
     }),

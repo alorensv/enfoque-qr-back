@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { User } from '../models/user.entity';
+import { UserInstitution } from '../models/user_institution.entity';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { User } from '../models/user.entity';
       secret: process.env.JWT_SECRET || 'supersecret',
       signOptions: { expiresIn: '1d' },
     }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, UserInstitution]),
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

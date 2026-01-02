@@ -66,7 +66,7 @@ export class EquipmentController {
   async addDocument(
     @Param('id') id: string,
     @UploadedFile() file: MulterFile,
-    @Body() body: { name: string; type?: string; userId: number; institutionId: number }
+    @Body() body: { name: string; type?: string; userId: number; institutionId: number; isPrivate?: number }
   ) {
     const numId = parseInt(id, 10);
     if (isNaN(numId)) throw new NotFoundException('ID inválido');
@@ -81,12 +81,21 @@ export class EquipmentController {
     fs.renameSync(file.path, destPath);
     // Guardar ruta relativa para filePath
     const relPath = `/documentos/${body.institutionId}/${file.filename}`;
+    // Actualizar institutionId en el equipo si es diferente
+    const equipmentRepo = this.equipmentService['equipmentRepository'];
+    const equipment = await equipmentRepo.findOne({ where: { id: numId } });
+    if (equipment && equipment.institutionId !== body.institutionId) {
+      equipment.institutionId = body.institutionId;
+      await equipmentRepo.save(equipment);
+    }
+
     const doc = this.equipmentDocumentRepository.create({
       equipmentId: numId,
       name: body.name || file.originalname,
       type: body.type || file.mimetype,
       filePath: relPath,
       userId: body.userId,
+      isPrivate: body.isPrivate ? 1 : 0,
       createdAt: new Date(),
       updatedAt: null,
       deletedAt: null,
@@ -120,6 +129,7 @@ export class EquipmentController {
       createdAt: doc.createdAt,
       userId: doc.userId,
       responsable: doc.user?.userProfile?.fullName || null,
+      isPrivate: doc.isPrivate,
     }));
   }
 

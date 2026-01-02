@@ -29,8 +29,12 @@ export class EquipmentDocument {
   @Column({ nullable: true })
   type: string | null;
 
+
   @Column({ name: 'file_path' })
   filePath: string;
+
+  @Column({ name: 'is_private', type: 'tinyint', default: 0 })
+  isPrivate: number;
 
   @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

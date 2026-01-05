@@ -29,9 +29,7 @@ export class EquipmentDocument {
   @Column({ nullable: true })
   type: string | null;
 
-
-  @Column({ name: 'file_path' })
-  filePath: string;
+  // file_path column removed (deprecated in DB)
 
   @Column({ name: 'is_private', type: 'tinyint', default: 0 })
   isPrivate: number;

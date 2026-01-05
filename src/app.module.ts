@@ -17,6 +17,10 @@ import { EquipmentDocument } from './models/equipment_document.entity';
 import { UserProfile } from './models/user_profile.entity';
 import { UserInstitution } from './models/user_institution.entity';
 
+import { MaintenancesModule } from './maintenances/maintenances.module';
+import { EquipmentMaintenance } from './models/equipment_maintenance.entity';
+import { EquipmentMaintenancePhoto } from './models/equipment_maintenance_photo.entity';
+import { EquipmentMaintenanceDocument } from './models/equipment_maintenance_document.entity';
 
 @Module({
   imports: [
@@ -27,7 +31,7 @@ import { UserInstitution } from './models/user_institution.entity';
       username: process.env.DB_USER || 'enfoque',
       password: process.env.DB_PASS || 'enfoquepass',
       database: process.env.DB_NAME || 'enfoqueqr',
-      entities: [User, UserProfile, Equipment, Institution, CodigoQr, EquipmentQrCode, EquipmentDocument, UserInstitution],
+      entities: [User, UserProfile, Equipment, Institution, CodigoQr, EquipmentQrCode, EquipmentDocument, UserInstitution, EquipmentMaintenance, EquipmentMaintenancePhoto, EquipmentMaintenanceDocument],
       synchronize: false,
       logging: true,
     }),
@@ -36,6 +40,7 @@ import { UserInstitution } from './models/user_institution.entity';
     AuthModule,
     QrModule,
     EquipmentModule,
+    MaintenancesModule,
   ],
   controllers: [AppController, EquipmentController],
   providers: [AppService],

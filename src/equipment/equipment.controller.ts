@@ -27,18 +27,9 @@ export class EquipmentController {
     const numId = parseInt(docId, 10);
     if (isNaN(numId)) throw new NotFoundException('ID de documento inválido');
     const doc = await this.equipmentDocumentRepository.findOne({ where: { id: numId, deletedAt: null } });
-    if (!doc || !doc.filePath) throw new NotFoundException('Documento no encontrado');
-    // Asume que filePath es una ruta absoluta o relativa al directorio public
-    const path = require('path');
-    const fs = require('fs');
-    // Si filePath es relativo, ajústalo a la carpeta public
-    let fileAbsPath = doc.filePath;
-    if (!path.isAbsolute(fileAbsPath)) {
-      fileAbsPath = path.join(process.cwd(), 'public', fileAbsPath.replace(/^\/+/,'') );
-    }
-    console.log('Descargando archivo:', fileAbsPath);
-    if (!fs.existsSync(fileAbsPath)) throw new NotFoundException('Archivo no encontrado en servidor: ' + fileAbsPath);
-    res.download(fileAbsPath, doc.name);
+      if (!doc) throw new NotFoundException('Documento no encontrado');
+      // ...eliminado manejo de filePath y descarga de archivo...
+      throw new NotFoundException('Descarga de archivo no soportada: filePath eliminado del modelo');
   }
 
   /**
@@ -80,7 +71,7 @@ export class EquipmentController {
     const destPath = path.join(destDir, file.filename);
     fs.renameSync(file.path, destPath);
     // Guardar ruta relativa para filePath
-    const relPath = `/documentos/${body.institutionId}/${file.filename}`;
+      // Eliminado relPath ya que filePath ha sido eliminado
     // Actualizar institutionId en el equipo si es diferente
     const equipmentRepo = this.equipmentService['equipmentRepository'];
     const equipment = await equipmentRepo.findOne({ where: { id: numId } });
@@ -89,17 +80,15 @@ export class EquipmentController {
       await equipmentRepo.save(equipment);
     }
 
-    const doc = this.equipmentDocumentRepository.create({
-      equipmentId: numId,
-      name: body.name || file.originalname,
-      type: body.type || file.mimetype,
-      filePath: relPath,
-      userId: body.userId,
-      isPrivate: body.isPrivate ? 1 : 0,
-      createdAt: new Date(),
-      updatedAt: null,
-      deletedAt: null,
-    });
+      const doc = this.equipmentDocumentRepository.create({
+        equipmentId: numId,
+        name: body.name || file.originalname,
+        type: body.type || file.mimetype,
+        userId: body.userId,
+        isPrivate: body.isPrivate ? 1 : 0,
+        createdAt: new Date(),
+        updatedAt: null,
+      });
     const saved = await this.equipmentDocumentRepository.save(doc);
     return saved;
   }
@@ -125,7 +114,6 @@ export class EquipmentController {
       id: doc.id,
       name: doc.name,
       type: doc.type,
-      filePath: doc.filePath,
       createdAt: doc.createdAt,
       userId: doc.userId,
       responsable: doc.user?.userProfile?.fullName || null,

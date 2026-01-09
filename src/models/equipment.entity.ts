@@ -18,6 +18,9 @@ export class Equipment {
   @Column({ name: 'serial_number', nullable: true })
   serialNumber: string | null;
 
+  @Column({ name: 'equipment_photo', nullable: true })
+  equipmentPhoto: string | null;
+
   @Column({ nullable: true, type: 'text' })
   description: string | null;
 

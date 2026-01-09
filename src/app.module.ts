@@ -21,6 +21,7 @@ import { MaintenancesModule } from './maintenances/maintenances.module';
 import { EquipmentMaintenance } from './models/equipment_maintenance.entity';
 import { EquipmentMaintenancePhoto } from './models/equipment_maintenance_photo.entity';
 import { EquipmentMaintenanceDocument } from './models/equipment_maintenance_document.entity';
+import { EquipmentMaintenanceLog } from './models/equipment_maintenance_log.entity';
 
 @Module({
   imports: [
@@ -31,7 +32,7 @@ import { EquipmentMaintenanceDocument } from './models/equipment_maintenance_doc
       username: process.env.DB_USER || 'enfoque',
       password: process.env.DB_PASS || 'enfoquepass',
       database: process.env.DB_NAME || 'enfoqueqr',
-      entities: [User, UserProfile, Equipment, Institution, CodigoQr, EquipmentQrCode, EquipmentDocument, UserInstitution, EquipmentMaintenance, EquipmentMaintenancePhoto, EquipmentMaintenanceDocument],
+      entities: [User, UserProfile, Equipment, Institution, CodigoQr, EquipmentQrCode, EquipmentDocument, UserInstitution, EquipmentMaintenance, EquipmentMaintenancePhoto, EquipmentMaintenanceDocument, EquipmentMaintenanceLog],
       synchronize: false,
       logging: true,
     }),

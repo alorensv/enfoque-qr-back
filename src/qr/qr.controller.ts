@@ -30,7 +30,7 @@ export class QrController {
   }
 
   @Post()
-  create(@Body() data: any) {
-    return this.qrService.create(data);
+  create(@Body() body: { equipmentId: number, data: any }) {
+    return this.qrService.create(body.data, body.equipmentId);
   }
 }

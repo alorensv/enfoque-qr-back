@@ -21,13 +21,13 @@ export class QrService {
     return this.qrRepository.findOne({ where: { token, deletedAt: null } });
   }
 
-  async create(data: Partial<CodigoQr>) {
+  async create(data: Partial<CodigoQr>, equipmentId: number) {
     // 1. Crear el registro QR en la base de datos (sin imagen)
     const qr = this.qrRepository.create(data);
     const savedQr = await this.qrRepository.save(qr);
 
     // 2. Generar imagen QR (PNG) usando la urlPublica
-    const qrDir = path.join(process.cwd(), 'public', 'qr');
+    const qrDir = path.join(process.cwd(), 'public', 'equipos', String(equipmentId), 'qr');
     if (!fs.existsSync(qrDir)) {
       fs.mkdirSync(qrDir, { recursive: true });
     }
@@ -36,7 +36,7 @@ export class QrService {
     await QRCode.toFile(filePath, savedQr.urlPublica, { width: 400 });
 
     // 3. Guardar la ruta relativa de la imagen en la base de datos
-    savedQr.imagenPath = `/qr/${fileName}`;
+    savedQr.imagenPath = `/equipos/${equipmentId}/qr/${fileName}`;
     await this.qrRepository.save(savedQr);
 
     return savedQr;

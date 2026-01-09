@@ -27,9 +27,15 @@ export class EquipmentController {
     const numId = parseInt(docId, 10);
     if (isNaN(numId)) throw new NotFoundException('ID de documento inválido');
     const doc = await this.equipmentDocumentRepository.findOne({ where: { id: numId, deletedAt: null } });
-      if (!doc) throw new NotFoundException('Documento no encontrado');
-      // ...eliminado manejo de filePath y descarga de archivo...
-      throw new NotFoundException('Descarga de archivo no soportada: filePath eliminado del modelo');
+    if (!doc) throw new NotFoundException('Documento no encontrado');
+    const path = require('path');
+    const fs = require('fs');
+    const filePath = path.join(process.cwd(), 'public', doc.filePath);
+    if (fs.existsSync(filePath)) {
+      res.download(filePath, doc.originalName || doc.name);
+    } else {
+      throw new NotFoundException('Archivo no encontrado en el servidor');
+    }
   }
 
   /**
@@ -41,12 +47,12 @@ export class EquipmentController {
   @UseInterceptors(FileInterceptor('file', {
     storage: multer.diskStorage({
       destination: (req, file, cb) => {
-        // Siempre subir a una carpeta temporal
+        // Guardar siempre en una carpeta temporal primero
         const path = require('path');
         const fs = require('fs');
-        const dest = path.join(process.cwd(), 'public', 'documentos', 'tmp');
-        if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
-        cb(null, dest);
+        const tmpDir = path.join(process.cwd(), 'public', 'tmp');
+        if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+        cb(null, tmpDir);
       },
       filename: (req, file, cb) => {
         const unique = Date.now() + '-' + file.originalname.replace(/\s+/g, '_');
@@ -57,40 +63,13 @@ export class EquipmentController {
   async addDocument(
     @Param('id') id: string,
     @UploadedFile() file: MulterFile,
-    @Body() body: { name: string; type?: string; userId: number; institutionId: number; isPrivate?: number }
+    @Body() body: { name: string; type?: string; userId: number; isPrivate?: number }
   ) {
-    const numId = parseInt(id, 10);
-    if (isNaN(numId)) throw new NotFoundException('ID inválido');
+    const equipmentId = parseInt(id, 10);
+    if (isNaN(equipmentId)) throw new NotFoundException('ID de equipo inválido');
     if (!file) throw new BadRequestException('Archivo requerido');
-    if (!body.institutionId) throw new BadRequestException('institutionId requerido');
-    // Mover el archivo a la carpeta definitiva de la institución
-    const path = require('path');
-    const fs = require('fs');
-    const destDir = path.join(process.cwd(), 'public', 'documentos', String(body.institutionId));
-    if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
-    const destPath = path.join(destDir, file.filename);
-    fs.renameSync(file.path, destPath);
-    // Guardar ruta relativa para filePath
-      // Eliminado relPath ya que filePath ha sido eliminado
-    // Actualizar institutionId en el equipo si es diferente
-    const equipmentRepo = this.equipmentService['equipmentRepository'];
-    const equipment = await equipmentRepo.findOne({ where: { id: numId } });
-    if (equipment && equipment.institutionId !== body.institutionId) {
-      equipment.institutionId = body.institutionId;
-      await equipmentRepo.save(equipment);
-    }
 
-      const doc = this.equipmentDocumentRepository.create({
-        equipmentId: numId,
-        name: body.name || file.originalname,
-        type: body.type || file.mimetype,
-        userId: body.userId,
-        isPrivate: body.isPrivate ? 1 : 0,
-        createdAt: new Date(),
-        updatedAt: null,
-      });
-    const saved = await this.equipmentDocumentRepository.save(doc);
-    return saved;
+    return this.equipmentService.addDocument(equipmentId, file, body);
   }
 
   /**
@@ -114,6 +93,7 @@ export class EquipmentController {
       id: doc.id,
       name: doc.name,
       type: doc.type,
+      filePath: doc.filePath,
       createdAt: doc.createdAt,
       userId: doc.userId,
       responsable: doc.user?.userProfile?.fullName || null,
@@ -150,8 +130,28 @@ export class EquipmentController {
   }
 
   @Post()
-  create(@Body() createEquipmentDto: Partial<Equipment>): Promise<Equipment> {
-    return this.equipmentService.create(createEquipmentDto);
+  @UseInterceptors(FileInterceptor('equipmentPhoto', {
+    storage: multer.diskStorage({
+      destination: (req, file, cb) => {
+        // Guardar siempre en una carpeta temporal primero
+        const path = require('path');
+        const fs = require('fs');
+        const tmpDir = path.join(process.cwd(), 'public', 'tmp');
+        if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+        cb(null, tmpDir);
+      },
+      filename: (req, file, cb) => {
+        const unique = Date.now() + '-' + file.originalname.replace(/\s+/g, '_');
+        cb(null, unique);
+      },
+    })
+  }))
+  /**
+   * Crea un equipo y almacena la foto en public/equipos/fotos si se adjunta equipmentPhoto
+   */
+  async create(@Body() createEquipmentDto: Partial<Equipment>, @UploadedFile() equipmentPhoto?: MulterFile): Promise<Equipment> {
+    // Pasar el archivo a EquipmentService para manejo centralizado
+    return this.equipmentService.create(createEquipmentDto, equipmentPhoto);
   }
 
   @Put(':id')

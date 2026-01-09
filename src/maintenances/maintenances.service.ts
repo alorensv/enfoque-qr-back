@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { MaintenanceLogService } from './maintenance-log.service';
 import { File as MulterFile } from 'multer';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -15,7 +16,16 @@ export class MaintenancesService {
     private readonly photoRepo: Repository<EquipmentMaintenancePhoto>,
     @InjectRepository(EquipmentMaintenanceDocument)
     private readonly documentRepo: Repository<EquipmentMaintenanceDocument>,
+    private readonly maintenanceLogService: MaintenanceLogService,
   ) {}
+
+  async getLogsByMaintenance(maintenanceId: number) {
+    return this.maintenanceLogService.getLogsByMaintenance(String(maintenanceId));
+  }
+
+  async getDocumentById(docId: number) {
+    return this.documentRepo.findOne({ where: { id: docId } });
+  }
 
   async getByEquipment(equipmentId: number) {
     return this.maintenanceRepo.find({
@@ -36,26 +46,102 @@ export class MaintenancesService {
       status: data.status,
     });
     const saved = await this.maintenanceRepo.save(maintenance);
+    // Registrar log de creación
+    if (saved && saved.id && saved.userId) {
+      await this.maintenanceLogService.createLog(
+        String(saved.id),
+        String(saved.userId),
+        'CREACION',
+        'Se registró la mantención.'
+      );
+    }
     return saved;
   }
 
   async getById(id: number) {
-    // TODO: Implementar lógica para ver detalle de mantención
-    return { id };
+    // Obtener la mantención con relaciones de usuario y perfil
+    const maintenance = await this.maintenanceRepo.findOne({
+      where: { id, deletedAt: null },
+      relations: ['user', 'user.userProfile'],
+    });
+    if (!maintenance) return null;
+
+    // Separar fecha y hora de performedAt
+    let fecha = null;
+    let hora = null;
+    if (maintenance.performedAt) {
+      // Si performedAt es tipo Date o string ISO
+      const dateObj = new Date(maintenance.performedAt);
+      if (!isNaN(dateObj.getTime())) {
+        fecha = dateObj.toISOString().slice(0, 10);
+        hora = dateObj.toISOString().slice(11, 19);
+      } else if (typeof maintenance.performedAt === 'string') {
+        // Si solo es fecha (YYYY-MM-DD)
+        fecha = maintenance.performedAt;
+        hora = null;
+      }
+    }
+
+    // Obtener nombre completo del responsable
+    let responsable = null;
+    if (maintenance.user && maintenance.user.userProfile) {
+      responsable = maintenance.user.userProfile.fullName;
+    }
+
+    return {
+      ...maintenance,
+      fecha,
+      hora,
+      responsable,
+    };
   }
 
   async update(id: number, data: any) {
-    // TODO: Implementar lógica para editar mantención
-    return { id, ...data };
+    // Obtener la mantención actual
+    const maintenance = await this.maintenanceRepo.findOne({ where: { id } });
+    if (!maintenance) throw new Error('Mantención no encontrada');
+    // Actualizar campos permitidos
+    if (data.description !== undefined) maintenance.description = data.description;
+    if (data.performedAt !== undefined) maintenance.performedAt = data.performedAt;
+    if (data.technician !== undefined) maintenance.technician = data.technician;
+    if (data.status !== undefined) maintenance.status = data.status;
+    // Guardar cambios
+    const updated = await this.maintenanceRepo.save(maintenance);
+    // Registrar log de edición
+    if (updated && updated.id && updated.userId) {
+      await this.maintenanceLogService.createLog(
+        String(updated.id),
+        String(updated.userId),
+        'EDICION',
+        'Se editó la mantención.'
+      );
+    }
+    return updated;
   }
 
   async uploadPhotos(id: number, files: MulterFile[]) {
     if (!files || files.length === 0) throw new Error('No se subió ningún archivo');
+
+    const maintenance = await this.maintenanceRepo.findOne({ where: { id } });
+    if (!maintenance) throw new Error('Mantención no encontrada');
+    const equipmentId = maintenance.equipmentId;
+
+    const path = require('path');
+    const fs = require('fs');
+
     const saved = [];
     for (const file of files) {
-      if (!file || !(file.filename || file.path)) throw new Error('Archivo inválido');
-      // Guardar path relativo: /mantenciones/{id}/fotos/{filename}
-      const relativePath = `/mantenciones/${id}/fotos/${file.filename}`;
+      if (!file || !file.path) throw new Error('Archivo inválido');
+
+      // Mover archivo
+      const finalDir = path.join(process.cwd(), 'public', 'equipos', String(equipmentId), 'mantenciones', String(id), 'fotos');
+      if (!fs.existsSync(finalDir)) fs.mkdirSync(finalDir, { recursive: true });
+      
+      const finalPath = path.join(finalDir, file.filename);
+      fs.renameSync(file.path, finalPath);
+
+      // Guardar path relativo
+      const relativePath = `/equipos/${equipmentId}/mantenciones/${id}/fotos/${file.filename}`;
       const photo = this.photoRepo.create({
         maintenanceId: id,
         filePath: relativePath,
@@ -67,11 +153,27 @@ export class MaintenancesService {
 
   async uploadDocuments(id: number, files: MulterFile[]) {
     if (!files || files.length === 0) throw new Error('No se subió ningún archivo');
+
+    const maintenance = await this.maintenanceRepo.findOne({ where: { id } });
+    if (!maintenance) throw new Error('Mantención no encontrada');
+    const equipmentId = maintenance.equipmentId;
+
+    const path = require('path');
+    const fs = require('fs');
+
     const saved = [];
     for (const file of files) {
-      if (!file || !(file.filename || file.path)) throw new Error('Archivo inválido');
-      // Guardar path relativo: /mantenciones/{id}/documentos/{filename}
-      const relativePath = `/mantenciones/${id}/documentos/${file.filename}`;
+      if (!file || !file.path) throw new Error('Archivo inválido');
+      
+      // Mover archivo
+      const finalDir = path.join(process.cwd(), 'public', 'equipos', String(equipmentId), 'mantenciones', String(id), 'documentos');
+      if (!fs.existsSync(finalDir)) fs.mkdirSync(finalDir, { recursive: true });
+
+      const finalPath = path.join(finalDir, file.filename);
+      fs.renameSync(file.path, finalPath);
+
+      // Guardar path relativo
+      const relativePath = `/equipos/${equipmentId}/mantenciones/${id}/documentos/${file.filename}`;
       const doc = this.documentRepo.create({
         maintenanceId: id,
         name: file.originalname,

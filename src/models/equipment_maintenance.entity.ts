@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { EquipmentMaintenanceLog } from './equipment_maintenance_log.entity';
 import { Equipment } from './equipment.entity';
 import { User } from './user.entity';
 
@@ -44,4 +45,6 @@ export class EquipmentMaintenance {
 
   @Column({ name: 'deleted_at', type: 'timestamp', nullable: true })
   deletedAt: Date | null;
+  @OneToMany(() => EquipmentMaintenanceLog, log => log.maintenance)
+  logs: EquipmentMaintenanceLog[];
 }
